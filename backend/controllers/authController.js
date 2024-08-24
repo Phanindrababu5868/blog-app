@@ -54,7 +54,7 @@ exports.login = async (req, res) => {
           return res.status(500).json({ message: "Internal server error" });
         }
         res
-          .cookie("token", token, { httpOnly: true })
+          .cookie("token", token, { httpOnly: true,secure: true })
           .json({ id: userDoc._id, username });
       });
     } else {
