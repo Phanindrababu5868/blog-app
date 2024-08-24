@@ -11,7 +11,7 @@ const app = express();
 app.use(
   cors({
     credentials: true,
-    origin: "https://66c96b5e882f3d7d31c736ba--gorgeous-sunflower-a02c16",
+    origin: "https://blogapp-zuai.netlify.app",
   })
 );
 
