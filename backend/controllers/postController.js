@@ -1,45 +1,36 @@
 const Post = require("../models/Post");
 const fs = require("fs");
 const { verifyToken } = require("../utils/jwtUtils");
+const { error } = require("console");
+const { uploadOnCloudinary } = require("../utils/cloudinaryUtils");
 
 exports.createPost = async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded." });
-    }
+  const { originalname, path } = req.file;
+  const parts = originalname.split(".");
+  const ext = parts[parts.length - 1];
+  const newPath = path + "." + ext;
+  fs.renameSync(path, newPath);
 
-    const { originalname, path } = req.file;
-    const parts = originalname.split(".");
-    const ext = parts[parts.length - 1];
-    const newPath = `${path}.${ext}`;
-
-    await fs.rename(path, newPath);
-
-    verifyToken(req.cookies.token, async (err, info) => {
-      if (err) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
+  verifyToken(req.cookies.token, async (info) => {
+    if (info) {
       const { title, summary, content } = req.body;
-      try {
-        const postDoc = await Post.create({
-          title,
-          summary,
-          content,
-          cover: newPath,
-          author: info.id,
-        });
-        res.status(201).json(postDoc);
-      } catch (dbError) {
-        res
-          .status(500)
-          .json({ message: "Database error", error: dbError.message });
-      }
-    });
-  } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
-  }
+      const cloudinaryResponse = await uploadOnCloudinary(newPath);
+      if (!cloudinaryResponse)
+        return res.status(500).json({ message: "Cloudinary upload failed" });
+      const postDoc = await Post.create({
+        title,
+        summary,
+        content,
+        cover: cloudinaryResponse.secure_url,
+        author: info.id,
+      });
+      res.json(postDoc);
+    } else {
+      res.json({ message: "Post Creation failed" });
+    }
+  });
 };
+
 exports.updatePost = async (req, res) => {
   let newPath = null;
 
@@ -58,12 +49,18 @@ exports.updatePost = async (req, res) => {
       return res.status(400).json("You are not the author");
     }
 
+    let coverUrl = postDoc.cover;
+    if (newPath) {
+      const cloudinaryResponse = await uploadOnCloudinary(newPath);
+      if (!cloudinaryResponse)
+        return res.status(500).json("Cloudinary upload failed");
+      coverUrl = cloudinaryResponse.secure_url;
+    }
+
     postDoc.title = title;
     postDoc.summary = summary;
     postDoc.content = content;
-    if (newPath) {
-      postDoc.cover = newPath;
-    }
+    postDoc.cover = coverUrl;
 
     await postDoc.save();
     res.json(postDoc);

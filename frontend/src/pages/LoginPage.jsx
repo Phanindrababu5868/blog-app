@@ -7,11 +7,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [redirect, setRedirect] = useState(false);
   const { setUserInfo } = useContext(UserContext);
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
   async function login(ev) {
     ev.preventDefault();
+    setIsLoading(true);
     const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
       method: "POST",
       body: JSON.stringify({ username, password }),
@@ -21,10 +23,13 @@ export default function LoginPage() {
     if (response.ok) {
       response.json().then((userInfo) => {
         setUserInfo(userInfo);
+
+        setIsLoading(false);
         setRedirect(true);
       });
     } else {
       alert("wrong credentials");
+      setIsLoading(false);
     }
   }
 
@@ -46,7 +51,9 @@ export default function LoginPage() {
         value={password}
         onChange={(ev) => setPassword(ev.target.value)}
       />
-      <button style={{ width: "100%" }}>Login</button>
+      <button style={{ width: "100%" }} disabled={isLoading}>
+        {isLoading ? "Logging..." : "Login"}
+      </button>
       <p style={{ marginTop: "10px" }}>
         Don't have have account?{" "}
         <a

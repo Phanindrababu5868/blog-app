@@ -146,10 +146,10 @@ export default function PostPage() {
         className="image"
         style={{
           borderRadius: "8px",
-          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", // Optional: adds a shadow effect
+          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
         }}
       >
-        <img src={`http://localhost:4000/${postInfo.cover}`} alt="" />
+        <img src={`${postInfo.cover}`} alt="" />
       </div>
       <div
         className="content"

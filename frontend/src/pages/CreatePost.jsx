@@ -10,21 +10,29 @@ export default function CreatePost() {
   const [content, setContent] = useState("");
   const [files, setFiles] = useState("");
   const [redirect, setRedirect] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   async function createNewPost(ev) {
+    setLoading(true);
     ev.preventDefault();
-    const data = new FormData();
-    data.set("title", title);
-    data.set("summary", summary);
-    data.set("content", content);
-    data.set("file", files[0]);
-    ev.preventDefault();
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/posts`, {
-      method: "POST",
-      body: data,
-      credentials: "include",
-    });
-    if (response.ok) {
-      setRedirect(true);
+    try {
+      const data = new FormData();
+      data.set("title", title);
+      data.set("summary", summary);
+      data.set("content", content);
+      data.set("file", files[0]);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/posts`, {
+        method: "POST",
+        body: data,
+        credentials: "include",
+      });
+      if (response.ok) {
+        setRedirect(true);
+      }
+    } catch (err) {
+      alert("Creation failed");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -52,11 +60,15 @@ export default function CreatePost() {
       />
       <input
         type="file"
+        accept="image/*"
         onChange={(ev) => setFiles(ev.target.files)}
         required
       />
       <Editor value={content} onChange={setContent} />
-      <button style={{ marginTop: "5px" }}>Create post</button>
+      <button style={{ marginTop: "5px" }} disabled={loading}>
+        {" "}
+        {loading ? "Creating..." : "Create post"}
+      </button>
     </form>
   );
 }

@@ -21,7 +21,7 @@ export default function Post({
       }}
     >
       <div className="image">
-        <img src={"http://localhost:4000/" + cover} alt="" />
+        <img src={cover} alt="" />
       </div>
       <div className="texts">
         <h2>{title}</h2>
@@ -30,7 +30,9 @@ export default function Post({
           <a className="author">{author.username}</a>
           <time>{formatISO9075(new Date(createdAt))}</time>
         </p>
-        <p className="summary">{summary}</p>
+        <p className="summary">
+          {summary.length > 250 ? `${summary.slice(0, 150)}...` : summary}
+        </p>
       </div>
     </div>
   );
